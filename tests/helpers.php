@@ -1,5 +1,6 @@
 <?php
 
+use App\Project;
 use App\User;
 
 
@@ -7,7 +8,7 @@ use App\User;
  * @param $what
  * @param array $overrides
  * @param int $qty
- * @return User
+ * @return User|Project
  */
 function create($what, $overrides = [], $qty = 1)
 {
@@ -25,7 +26,7 @@ function create($what, $overrides = [], $qty = 1)
  * @param $state
  * @param array $overrides
  * @param int $qty
- * @return User
+ * @return User|Project
  */
 function create_state($what, $state, $overrides = [], $qty = 1)
 {

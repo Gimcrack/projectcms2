@@ -9,11 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
- * @property bool $admin_flag
  * @property int $id
+ * @property string api_token
+ * @property bool $admin_flag
+ * @property bool $approver_flag
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property string api_token
  */
 class User extends Authenticatable
 {
@@ -47,7 +48,8 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'admin_flag' => 'bool'
+        'admin_flag' => 'bool',
+        'approver_flag' => 'bool'
     ];
 
 
@@ -56,6 +58,16 @@ class User extends Authenticatable
         'updated' => UserWasUpdated::class,
         'deleting' => UserWasDestroyed::class,
     ];
+
+    /**
+     * Is the user an approver?
+     *
+     * @return bool
+     */
+    public function isApprover()
+    {
+        return (bool) $this->admin_flag || $this->approver_flag;
+    }
 
     /**
      * Is the user an admin?
@@ -80,7 +92,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Promote the user to an admin
+     * Demote the admin to a user
      * @method demoteToUser
      *
      * @return   void
@@ -88,6 +100,30 @@ class User extends Authenticatable
     public function demoteToUser()
     {
         $this->admin_flag = 0;
+        $this->save();
+    }
+
+    /**
+     * Promote the user to an approver
+     * @method promoteToApprover
+     *
+     * @return   void
+     */
+    public function promoteToApprover()
+    {
+        $this->approver_flag = 1;
+        $this->save();
+    }
+
+    /**
+     * Promote the user to an approver
+     * @method demoteApproverToUser
+     *
+     * @return   void
+     */
+    public function demoteApproverToUser()
+    {
+        $this->approver_flag = 0;
         $this->save();
     }
 }

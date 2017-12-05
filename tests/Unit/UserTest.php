@@ -81,6 +81,36 @@ class UserTest extends TestCase
         $this->assertFalse( $user->fresh()->isAdmin() );
     }
 
+    /**
+     * @test
+     */
+    public function it_can_be_configured_as_an_approver()
+    {
+        $user = create_state(User::class,'approver');
+
+        $this->assertTrue( $user->isApprover() );
+    }
+
+    /** @test */
+    function it_can_be_promoted_to_an_approver()
+    {
+        $user = create(User::class);
+        $this->assertFalse( $user->isApprover() );
+
+        $user->promoteToApprover();
+        $this->assertTrue( $user->fresh()->isApprover() );
+    }
+
+    /** @test */
+    function it_can_be_demoted_to_a_user_from_an_approver()
+    {
+        $user = create_state(User::class,'approver');
+        $this->assertTrue( $user->isApprover() );
+
+        $user->demoteApproverToUser();
+        $this->assertFalse( $user->fresh()->isApprover() );
+    }
+
     /** @test */
     function an_event_is_dispatched_when_a_user_is_created()
     {
