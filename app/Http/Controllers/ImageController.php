@@ -3,83 +3,75 @@
 namespace App\Http\Controllers;
 
 use App\Image;
-use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use App\Events\ImageUploaded;
+use App\Http\Requests\NewImageRequest;
+use App\Http\Requests\UpdateImageRequest;
 
 class ImageController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return response()->json(Image::all(),200);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param NewImageRequest $request
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(NewImageRequest $request)
     {
-        //
+        $image = Image::create($request->atts());
+
+        ImageUploaded::dispatch($image);
+
+        return response()->json([],201);
     }
 
     /**
      * Display the specified resource.
      *
      * @param  \App\Image  $image
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show(Image $image)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Image  $image
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Image $image)
-    {
-        //
+        return response()->json($image,200);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Image  $image
-     * @return \Illuminate\Http\Response
+     * @param UpdateImageRequest $request
+     * @param  \App\Image $image
+     * @return Response
      */
-    public function update(Request $request, Image $image)
+    public function update(UpdateImageRequest $request, Image $image)
     {
-        //
+        $image->update($request->atts());
+
+        ImageUploaded::dispatch( $image->fresh() );
+
+        return response()->json([],202);
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Image  $image
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy(Image $image)
     {
-        //
+        $image->delete();
+
+        return response()->json([],202);
     }
 }

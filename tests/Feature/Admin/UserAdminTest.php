@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\User;
+use function create_state;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -13,9 +14,7 @@ class UserAdminTest extends TestCase
     /** @test */
     function a_user_with_valid_attributes_can_be_created_by_an_admin()
     {
-        $this->withoutExceptionHandling();
-
-        $atts = [
+         $atts = [
             'name' => 'Name Lastname',
             'email' => 'email@example.com',
             'password' => 'Valid Password',
@@ -23,9 +22,8 @@ class UserAdminTest extends TestCase
         ];
 
         $this
-            ->api()
             ->actingAsAdmin()
-            ->post("admin/users", $atts)
+            ->post("users.store", $atts)
             ->response()
             ->assertStatus(201);
 
@@ -45,7 +43,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->post("admin/users", $atts)
+            ->post("users.store", $atts)
             ->response()
             ->assertStatus(422)
             ->assertJsonValidationErrors('name');
@@ -63,7 +61,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->post("admin/users", $atts)
+            ->post("users.store", $atts)
             ->response()
             ->assertStatus(422)
             ->assertJsonValidationErrors('email');
@@ -81,7 +79,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->post("admin/users", $atts)
+            ->post("users.store", $atts)
             ->response()
             ->assertStatus(422)
             ->assertJsonValidationErrors('password');
@@ -97,7 +95,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->post("admin/users/{$user->id}/promote")
+            ->post(["users.promotion.store", $user])
             ->response()
             ->assertStatus(202);
 
@@ -112,7 +110,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->post("admin/users/{$user->id}/demote")
+            ->delete(["users.promotion.destroy", $user])
             ->response()
             ->assertStatus(202);
 
@@ -127,11 +125,26 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsUser()
-            ->post("admin/users/{$user->id}/promote")
+            ->post(["users.promotion.store", $user])
             ->response()
             ->assertStatus(422);
 
         $this->assertFalse( $user->fresh()->isAdmin() );
+    }
+
+    /** @test */
+    function a_admin_cannot_be_demoted_to_user_by_a_nonadmin()
+    {
+        $admin = create_state(User::class,'admin');
+
+        $this
+            ->api()
+            ->actingAsUser()
+            ->delete(["users.promotion.destroy", $admin])
+            ->response()
+            ->assertStatus(422);
+
+        $this->assertTrue( $admin->fresh()->isAdmin() );
     }
 
     /** @test */
@@ -142,7 +155,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->get("admin/users")
+            ->get("users.index")
             ->response()
             ->assertStatus(200);
 
@@ -157,7 +170,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->delete("admin/users/{$user->id}")
+            ->delete(["users.destroy",$user])
             ->response()
             ->assertStatus(202);
 
@@ -172,7 +185,7 @@ class UserAdminTest extends TestCase
         $this
             ->api()
             ->actingAsAdmin()
-            ->delete("admin/users/{$user->id}")
+            ->delete(["users.destroy",$user])
             ->response()
             ->assertStatus(403);
 
@@ -181,13 +194,11 @@ class UserAdminTest extends TestCase
 
     /** @test */
     public function it_can_be_updated() {
-        $this->withoutExceptionHandling();
-
         $user = create(User::class);
 
         $this->api()
             ->actingAsAdmin()
-            ->patch("admin/users/{$user->id}", [
+            ->patch(["users.update",$user], [
                 'name' => 'valid name',
                 'email' => 'newEmail@example.com'
             ])

@@ -2,8 +2,12 @@
 
 namespace Tests\Unit;
 
+use App\Events\ImageWasCreated;
+use App\Events\ImageWasDestroyed;
+use App\Events\ImageWasUpdated;
 use App\Image;
 use App\Project;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -85,5 +89,40 @@ class ImageTest extends TestCase
         $image->feature(false);
 
         $this->assertFalse($image->isFeatured());
+    }
+
+    /** @test */
+    function an_event_is_dispatched_when_a_image_is_created()
+    {
+        Event::fake();
+        $image = create(Image::class);
+        $this->assertEvent(ImageWasCreated::class, [ 'image' => $image ]);
+    }
+
+    /** @test */
+    function an_event_is_dispatched_when_a_image_is_updated()
+    {
+        Event::fake();
+        // given a published image
+        $image = create(Image::class);
+
+        // act - update the image
+        $image->update([
+            'path' => 'New Path'
+        ]);
+
+        $this->assertEvent(ImageWasUpdated::class, [ 'image' => $image ]);
+    }
+
+    /** @test */
+    function an_event_is_dispatched_when_a_image_is_destroyed()
+    {
+        Event::fake();
+        // given a image
+        $image = create(Image::class);
+
+        // act - delete the image
+        $image->delete();
+        $this->assertEvent(ImageWasDestroyed::class, [ 'image' => $image ]);
     }
 }

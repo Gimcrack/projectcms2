@@ -5,6 +5,7 @@ namespace App;
 use App\Events\UserWasCreated;
 use App\Events\UserWasDestroyed;
 use App\Events\UserWasUpdated;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -58,6 +59,17 @@ class User extends Authenticatable
         'updated' => UserWasUpdated::class,
         'deleting' => UserWasDestroyed::class,
     ];
+
+    /**
+     * Get the approver users
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeApprovers(Builder $query)
+    {
+        return $query->where('admin_flag',1)->orWhere('approver_flag',1);
+    }
 
     /**
      * Is the user an approver?

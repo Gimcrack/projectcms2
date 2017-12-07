@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Event;
+use App\Events\ImageUploaded;
+use App\Listeners\NotifyApprovers;
+use App\Events\ProjectReadyForApproval;
+use App\Listeners\ScheduleImageProcessing;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -13,8 +17,12 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\Event' => [
-            'App\Listeners\EventListener',
+        ImageUploaded::class => [
+            ScheduleImageProcessing::class,
+        ],
+
+        ProjectReadyForApproval::class => [
+            NotifyApprovers::class
         ],
     ];
 
@@ -26,7 +34,5 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
-
-        //
     }
 }

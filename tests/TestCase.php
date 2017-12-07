@@ -6,10 +6,14 @@ use App\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Foundation\Testing\TestResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Testing\Fakes\EventFake;
 use PHPUnit\Framework\Assert;
+use function strpos;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -158,22 +162,31 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Format the desired endpoint
-     * @param $endpoint string  The application endpoint to access
      *
+     * @param $params string|array  The application endpoint to access
      * @return string
      */
-    private function endpoint($endpoint)
+    private function endpoint($params)
     {
+        $params = Arr::wrap($params);
+        $url = array_shift($params);
+
+        // determine if we are trying to access a named route
+        if ( strpos($url, ".") !== false ) {
+            return route($url, $params);
+        }
+
+        // we may be wanting an api route, otherwise return the endpoint unchanged
         return ($this->api) ?
-            vsprintf("%s/%s", [$this->api_prefix, trim($endpoint, "/")]) :
-            $endpoint;
+            vsprintf("%s/%s", [$this->api_prefix, trim($url, "/")]) :
+            $url;
     }
 
     /**
      * Post to some endpoint with some data and save the response
      * @method post
      *
-     * @param string $endpoint
+     * @param string|array $endpoint
      * @param array $data
      * @param array $headers
      *
@@ -191,7 +204,7 @@ abstract class TestCase extends BaseTestCase
      * Get some endpoint with some data and save the response
      * @method get
      *
-     * @param string $endpoint
+     * @param string|array $endpoint
      * @param array $data
      * @param array $headers
      *
@@ -209,7 +222,7 @@ abstract class TestCase extends BaseTestCase
      * Patch some endpoint with some data and save the response
      * @method patch
      *
-     * @param string $endpoint
+     * @param string|array $endpoint
      * @param array $data
      * @param array $headers
      *
@@ -227,7 +240,7 @@ abstract class TestCase extends BaseTestCase
      * Put some endpoint with some data and save the response
      * @method put
      *
-     * @param string $endpoint
+     * @param string|array $endpoint
      * @param array $data
      * @param array $headers
      *
@@ -245,7 +258,7 @@ abstract class TestCase extends BaseTestCase
      * Delete some endpoint with some data and save the response
      * @method delete
      *
-     * @param string $endpoint
+     * @param string|array $endpoint
      * @param array $data
      * @param array $headers
      *
@@ -257,6 +270,16 @@ abstract class TestCase extends BaseTestCase
         $this->response = parent::json('DELETE', $this->endpoint($endpoint), $data, $this->headers);
         $this->api = false;
         return $this;
+    }
+
+    /**
+     * Fake the specified events
+     *
+     * @param array $events
+     */
+    public function fakeEvent($events = [])
+    {
+        Event::swap( new EventFake( Event::getFacadeRoot(), Arr::wrap($events) ));
     }
 
     /**
@@ -313,5 +336,36 @@ abstract class TestCase extends BaseTestCase
         });
 
         return $this;
+    }
+
+    /**
+     * Assert that the notification was sent and has the proper data
+     * @method assertNotification
+     *
+     * @return   $this
+     */
+    public function assertNotification($notification, $user, $models = [])
+    {
+        Notification::assertSentTo( $user, $notification, function($n, $channels) use($models) {
+            foreach($models as $model_type => $model) {
+                if ( ! $n->$model_type->is($model) ) return false;
+            }
+            return true;
+        });
+    }
+    /**
+     * Assert that the notification was not sent
+     * @method assertNotification
+     *
+     * @return   $this
+     */
+    public function assertNotificationNotSent($notification, $user, $models = [])
+    {
+        Notification::assertNotSentTo( $user, $notification, function($n, $channels) use($models) {
+            foreach($models as $model_type => $model) {
+                if ( ! $n->$model_type->is($model) ) return false;
+            }
+            return true;
+        });
     }
 }

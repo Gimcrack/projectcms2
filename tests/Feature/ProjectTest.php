@@ -21,7 +21,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->get("projects")
+            ->get("projects.index")
             ->response()
                 ->assertStatus(200)
                 ->assertJsonCount(3)
@@ -33,14 +33,14 @@ class ProjectTest extends TestCase
     /** @test */
     public function it_can_get_a_single_project()
     {
-        $project = create_array(Project::class);
+        $project = create(Project::class);
 
         $this->actingAsUser()
             ->api()
-            ->get("projects/{$project['id']}")
+            ->get(["projects.show",$project])
             ->response()
             ->assertStatus(200)
-                ->assertJsonFragment($project);
+                ->assertJsonFragment($project->toArray());
     }
 
     /** @test */
@@ -52,7 +52,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects", $atts)
+            ->post("projects.store", $atts)
             ->response()
                 ->assertStatus(422)
                 ->assertJsonValidationErrors('name');
@@ -61,7 +61,7 @@ class ProjectTest extends TestCase
     /** @test */
     public function it_cannot_create_a_project_with_a_duplicate_name()
     {
-        $original = create(Project::class, ['name' => 'Project Name']);
+        create(Project::class, ['name' => 'Project Name']);
 
         $atts = make_array(Project::class, [
             'name' => 'Project Name'
@@ -69,7 +69,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects", $atts)
+            ->post("projects.store", $atts)
             ->response()
                 ->assertStatus(422)
                 ->assertJsonValidationErrors('name');
@@ -84,7 +84,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects", $atts)
+            ->post("projects.store", $atts)
             ->response()
             ->assertStatus(422)
             ->assertJsonValidationErrors('description');
@@ -97,11 +97,27 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects", $atts)
+            ->post("projects.store", $atts)
             ->response()
             ->assertStatus(201);
 
         $this->assertDatabaseHas('projects', $atts);
+    }
+
+    /** @test */
+    public function it_can_be_readied_for_approval()
+    {
+        $project = create(Project::class);
+
+        $this->assertFalse($project->ready());
+
+        $this->actingAsUser()
+            ->api()
+            ->post(["projects.ready.store", $project])
+            ->response()
+            ->assertStatus(201);
+
+        $this->assertTrue($project->fresh()->ready());
     }
 
     /** @test */
@@ -114,7 +130,7 @@ class ProjectTest extends TestCase
 
         $this->actingAs($approver)
             ->api()
-            ->post("projects/{$project->id}/approval")
+            ->post(["projects.approval.store",$project])
             ->response()
                 ->assertStatus(201);
 
@@ -131,7 +147,7 @@ class ProjectTest extends TestCase
 
         $this->actingAs($approver)
             ->api()
-            ->delete("projects/{$project->id}/approval")
+            ->delete(["projects.approval.destroy", $project])
             ->response()
                 ->assertStatus(202);
 
@@ -147,7 +163,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects/{$project->id}/publish", [
+            ->post(["projects.publish.store", $project], [
                 'publish_at' => '2000-01-01 00:00:00'
             ])
             ->response()
@@ -165,7 +181,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects/{$project->id}/publish")
+            ->post(["projects.publish.store", $project])
             ->response()
                 ->assertStatus(201);
 
@@ -181,7 +197,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->post("projects/{$project->id}/publish", [
+            ->post(["projects.publish.store", $project], [
                 'published_at' => '2100-01-01 00:00:00'
             ])
             ->response()
@@ -200,7 +216,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->delete("projects/{$project->id}/publish", [
+            ->delete(["projects.publish.store", $project], [
                 'unpublished_at' => '2000-01-01 00:00:00'
             ])
             ->response()
@@ -219,7 +235,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->delete("projects/{$project->id}/publish")
+            ->delete(["projects.publish.destroy", $project])
             ->response()
                 ->assertStatus(202);
 
@@ -235,7 +251,7 @@ class ProjectTest extends TestCase
 
         $this->actingAsUser()
             ->api()
-            ->delete("projects/{$project->id}/publish", [
+            ->delete(["projects.publish.destroy", $project], [
                 'unpublished_at' => '2100-01-01 00:00:00'
             ])
             ->response()
@@ -245,5 +261,51 @@ class ProjectTest extends TestCase
         $this->assertEquals('2100-01-01 00:00:00', $project->fresh()->unpublished_at);
     }
 
+    /** @test */
+    public function it_can_be_updated()
+    {
+        $project = create(Project::class);
 
+        $this->actingAsUser()
+            ->api()
+            ->patch(["projects.update", $project],[
+                'name' => 'New Name'
+            ])
+            ->response()
+                ->assertStatus(202);
+
+        $this->assertDatabaseHas('projects',[
+            'name' => 'New Name'
+        ]);
+    }
+
+    /** @test */
+    public function it_becomes_unapproved_if_it_is_updated()
+    {
+        $project = create_state(Project::class, 'approved');
+
+        $this->actingAsUser()
+            ->api()
+            ->patch(["projects.update", $project],[
+                'name' => 'New Name'
+            ])
+            ->response()
+            ->assertStatus(202);
+
+        $this->assertFalse($project->fresh()->approved());
+        $this->assertFalse($project->fresh()->ready());
+    }
+
+    /** @test */
+    public function it_can_be_deleted()
+    {
+        $project = create(Project::class);
+
+        $this->actingAsUser()
+            ->delete(["projects.destroy", $project])
+            ->response()
+                ->assertStatus(202);
+
+        $this->assertDatabaseMissing('projects', $project->toArray());
+    }
  }

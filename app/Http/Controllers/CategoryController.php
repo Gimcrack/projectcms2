@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NewProjectRequest;
-use App\Http\Requests\UpdateProjectRequest;
-use App\Project;
+use App\Category;
+use App\Http\Requests\NewCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use Illuminate\Http\Request;
 
-class ProjectController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,18 +16,18 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        return response()->json(Project::all(),200);
+        return response()->json(Category::all(),200);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param NewProjectRequest $request
+     * @param NewCategoryRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function store(NewProjectRequest $request)
+    public function store(NewCategoryRequest $request)
     {
-        Project::create( $request->validated() );
+        Category::create( $request->validated() );
 
         return response()->json([],201);
     }
@@ -35,24 +35,24 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Project $project
+     * @param  Category $category
      * @return \Illuminate\Http\Response
      */
-    public function show(Project $project)
+    public function show(Category $category)
     {
-        return response()->json($project,200);
+        return response()->json($category,200);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  UpdateProjectRequest $request
-     * @param  Project $project
+     * @param  UpdateCategoryRequest $request
+     * @param  Category $category
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateProjectRequest $request, Project $project)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $project->update($request->validated());
+        $category->update($request->validated());
 
         return response()->json([],202);
     }
@@ -60,12 +60,12 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  Project $project
+     * @param  Category $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Project $project)
+    public function destroy(Category $category)
     {
-        $project->delete();
+        $category->delete();
 
         return response()->json([],202);
     }

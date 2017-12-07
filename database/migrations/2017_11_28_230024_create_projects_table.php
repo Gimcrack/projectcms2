@@ -17,7 +17,9 @@ class CreateProjectsTable extends Migration
             $table->increments('id');
             $table->string('name')->unique();
             $table->longText('description');
+            $table->boolean('ready_flag')->default(false);
             $table->boolean('approved_flag')->default(false);
+            $table->unsignedInteger('category_id');
             $table->unsignedInteger('approved_by')->nullable();
             $table->bigInteger('cost')->nullable();
             $table->dateTime('published_at')->nullable();

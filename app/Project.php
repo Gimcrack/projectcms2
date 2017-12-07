@@ -2,29 +2,37 @@
 
 namespace App;
 
+use App\Events\ProjectReadyForApproval;
 use Carbon\Carbon;
+use App\Events\ProjectWasCreated;
+use App\Events\ProjectWasUpdated;
+use App\Events\ProjectWasDestroyed;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
+ * @property mixed $name
  * @property mixed $images
  * @property mixed $approver
+ * @property bool $ready_flag
  * @property mixed $approved_by
  * @property bool $approved_flag
- * @property \Carbon\Carbon $ends_at
- * @property \Carbon\Carbon $starts_at
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * @property \Carbon\Carbon $published_at
- * @property \Carbon\Carbon $unpublished_at
+ * @property Carbon $ends_at
+ * @property Carbon $starts_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon $published_at
+ * @property Carbon $unpublished_at
  */
 class Project extends Model
 {
     protected $guarded = [];
 
     protected $casts = [
-        'approved_flag' => 'bool'
+        'category_id' => 'int',
+        'approved_flag' => 'bool',
+        'ready_flag' => 'bool'
     ];
 
     protected $dates = [
@@ -33,6 +41,27 @@ class Project extends Model
         'starts_at',
         'ends_at'
     ];
+
+    protected $dispatchesEvents = [
+        'created' => ProjectWasCreated::class,
+        'updated' => ProjectWasUpdated::class,
+        'deleting' => ProjectWasDestroyed::class,
+    ];
+
+    /**
+     * Update the project
+     *
+     * @param array $attributes
+     * @param array $options
+     * @return bool
+     */
+    public function update(array $attributes = [], array $options = [])
+    {
+        if ( $this->ready() ) $this->ready(false);
+        if ( $this->approved() ) $this->unapprove();
+
+        return parent::update($attributes, $options);
+    }
 
     /**
      * The approver of the project
@@ -45,6 +74,28 @@ class Project extends Model
     }
 
     /**
+     * Is the project ready for approval
+     *  or set the ready_flag value
+     *
+     * @param null|bool $flag
+     * @return bool
+     */
+    public function ready($flag = null)
+    {
+        if ( ! is_null($flag) ) {
+            $this->ready_flag = $flag;
+            $this->save();
+
+            if ( $flag )
+                ProjectReadyForApproval::dispatch($this);
+
+            return $flag;
+        }
+
+        return (bool) $this->ready_flag;
+    }
+
+    /**
      * Has the project been approved
      *
      * @return bool
@@ -52,6 +103,16 @@ class Project extends Model
     public function approved()
     {
         return (bool) $this->approved_flag;
+    }
+
+    /**
+     * Has the project not been approved
+     *
+     * @return bool
+     */
+    public function unapproved()
+    {
+        return ! (bool) $this->approved_flag;
     }
 
     /**

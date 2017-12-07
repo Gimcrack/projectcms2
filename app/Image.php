@@ -2,6 +2,9 @@
 
 namespace App;
 
+use App\Events\ImageWasCreated;
+use App\Events\ImageWasDestroyed;
+use App\Events\ImageWasUpdated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,6 +25,12 @@ class Image extends Model
     protected $casts = [
         'subject_id' => 'int',
         'featured_flag' => 'bool'
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => ImageWasCreated::class,
+        'updated' => ImageWasUpdated::class,
+        'deleting' => ImageWasDestroyed::class,
     ];
 
     public static function boot()

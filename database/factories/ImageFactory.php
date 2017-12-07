@@ -4,7 +4,7 @@ use Faker\Generator as Faker;
 use Illuminate\Http\Testing\File;
 
 $factory->define(App\Image::class, function (Faker $faker) {
-    $name = $faker->word;
+    $name = $faker->unique()->word;
 
     $file = File::image('project-image.png', $width = 1920, $height = 1080);
 
