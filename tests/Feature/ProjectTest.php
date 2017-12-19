@@ -17,7 +17,7 @@ class ProjectTest extends TestCase
      */
     public function it_can_get_a_listing_of_the_resource()
     {
-        $projects = create_array(Project::class, 3);
+        $projects = create(Project::class, 3);
 
         $this->actingAsUser()
             ->api()
@@ -25,9 +25,7 @@ class ProjectTest extends TestCase
             ->response()
                 ->assertStatus(200)
                 ->assertJsonCount(3)
-                ->assertJsonFragment($projects[0])
-                ->assertJsonFragment($projects[1])
-                ->assertJsonFragment($projects[2]);
+                ->assertJsonModelCollection($projects);
     }
 
     /** @test */
@@ -40,7 +38,7 @@ class ProjectTest extends TestCase
             ->get(["projects.show",$project])
             ->response()
             ->assertStatus(200)
-                ->assertJsonFragment($project->toArray());
+                ->assertJsonModel($project);
     }
 
     /** @test */
@@ -51,11 +49,11 @@ class ProjectTest extends TestCase
         ]);
 
         $this->actingAsUser()
-            ->api()
-            ->post("projects.store", $atts)
-            ->response()
-                ->assertStatus(422)
-                ->assertJsonValidationErrors('name');
+             ->api()
+             ->post("projects.store", $atts)
+             ->response()
+             ->assertStatus(422)
+             ->assertJsonValidationErrors('name');
     }
 
     /** @test */
@@ -206,7 +204,7 @@ class ProjectTest extends TestCase
         $this->assertFalse( $project->fresh()->published() );
         $this->assertEquals('2100-01-01 00:00:00', $project->fresh()->published_at);
     }
-    
+
     /** @test */
     public function it_can_be_unpublished_in_the_past()
     {
@@ -293,6 +291,21 @@ class ProjectTest extends TestCase
             ->assertStatus(202);
 
         $this->assertFalse($project->fresh()->approved());
+    }
+
+    /** @test */
+    public function it_becomes_unready_if_it_is_updated()
+    {
+        $project = create_state(Project::class, 'approved');
+
+        $this->actingAsUser()
+            ->api()
+            ->patch(["projects.update", $project],[
+                'name' => 'New Name'
+            ])
+            ->response()
+            ->assertStatus(202);
+
         $this->assertFalse($project->fresh()->ready());
     }
 

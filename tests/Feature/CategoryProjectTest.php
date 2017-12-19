@@ -17,17 +17,19 @@ class CategoryProjectTest extends TestCase
     public function it_can_get_all_the_projects_of_a_category()
     {
         $category = create(Category::class);
+        $projects = create(Project::class, 3);
 
-        $category->projects()->saveMany( $projects = create(Project::class,3)->all() );
+        $category->projects()->saveMany($projects->all());
 
         $this->actingAsUser()
-            ->get(["categories.projects.index", $category])
+             ->get([
+                "categories.projects.index",
+                $category
+            ])
             ->response()
-                ->assertStatus(200)
-                ->assertJsonCount(3)
-                ->assertJsonFragment($projects[0]->toArray())
-                ->assertJsonFragment($projects[1]->toArray())
-                ->assertJsonFragment($projects[2]->toArray());
+            ->assertStatus(200)
+            ->assertJsonCount(3)
+            ->assertJsonModelCollection($projects);
     }
 
     /**
@@ -44,7 +46,7 @@ class CategoryProjectTest extends TestCase
             ->get(["categories.projects.show",$category,$project])
             ->response()
             ->assertStatus(200)
-            ->assertJsonFragment( $project->toArray() );
+            ->assertJsonModel( $project );
     }
 
     /** @test */

@@ -18,3 +18,4 @@ Route::apiResource("categories.projects","CategoryProjectController");
 Route::apiResource("images","ImageController");
 Route::apiResource("projects","ProjectController");
 Route::apiResource("categories","CategoryController");
+Route::apiResource("tags","TagController");

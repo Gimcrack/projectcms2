@@ -98,7 +98,7 @@ class ImageTest extends TestCase
     /** @test */
     public function it_can_get_an_index_of_images()
     {
-        $images = create_array(Image::class,3);
+        $images = create(Image::class,3);
 
         $this->actingAsUser()
             ->api()
@@ -106,9 +106,7 @@ class ImageTest extends TestCase
             ->response()
             ->assertStatus(200)
             ->assertJsonCount(3)
-            ->assertJsonFragment($images[0])
-            ->assertJsonFragment($images[1])
-            ->assertJsonFragment($images[2]);
+            ->assertJsonModelCollection($images);
     }
 
     /** @test */
@@ -122,7 +120,7 @@ class ImageTest extends TestCase
             ->get(["images.show",$image])
             ->response()
                 ->assertStatus(200)
-                ->assertJsonFragment($image->toArray());
+                ->assertJsonModel($image);
     }
 
     /** @test */

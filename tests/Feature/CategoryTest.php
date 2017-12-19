@@ -15,7 +15,7 @@ class CategoryTest extends TestCase
      */
     public function it_can_get_a_listing_of_the_resource()
     {
-        $categories = create_array(Category::class, 3);
+        $categories = create(Category::class, 3);
 
         $this->actingAsUser()
             ->api()
@@ -23,9 +23,7 @@ class CategoryTest extends TestCase
             ->response()
             ->assertStatus(200)
             ->assertJsonCount(3)
-            ->assertJsonFragment($categories[0])
-            ->assertJsonFragment($categories[1])
-            ->assertJsonFragment($categories[2]);
+            ->assertJsonModelCollection($categories);
     }
 
     /** @test */
@@ -38,7 +36,7 @@ class CategoryTest extends TestCase
             ->get(["categories.show",$category])
             ->response()
             ->assertStatus(200)
-            ->assertJsonFragment($category->toArray());
+            ->assertJsonModel($category);
     }
 
     /** @test */

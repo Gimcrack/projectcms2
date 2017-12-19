@@ -1,15 +1,16 @@
 <?php
 
 use App\Category;
+use App\Image;
 use App\Project;
 use App\User;
-
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * @param $what
  * @param array $overrides
  * @param int $qty
- * @return User|Project|Category
+ * @return User|Project|Category|Image|Collection
  */
 function create($what, $overrides = [], $qty = 1)
 {
@@ -27,7 +28,7 @@ function create($what, $overrides = [], $qty = 1)
  * @param $state
  * @param array $overrides
  * @param int $qty
- * @return User|Project|Category
+ * @return User|Project|Category|Image
  */
 function create_state($what, $state, $overrides = [], $qty = 1)
 {

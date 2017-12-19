@@ -19,11 +19,11 @@ class ProjectImageTest extends TestCase
     public function it_can_get_a_listing_of_the_resource()
     {
         $images = create(Image::class, 3);
-        $other_image = create(Image::class);
 
         $project = create(Project::class);
+        $project->images()->saveMany($images);
 
-        $project->images()->saveMany($images->all());
+        $other_image = create(Image::class);
 
         $this->actingAsAdmin()
             ->api()
@@ -31,10 +31,8 @@ class ProjectImageTest extends TestCase
             ->response()
             ->assertStatus(200)
             ->assertJsonCount(3)
-            ->assertJsonFragment( $images[0]->toArray() )
-            ->assertJsonFragment( $images[1]->toArray() )
-            ->assertJsonFragment( $images[2]->toArray() )
-            ->assertJsonMissingExact($other_image->toArray());
+            ->assertJsonModelCollection( $images )
+            ->assertJsonMissingModel($other_image);
 
     }
 
@@ -52,7 +50,7 @@ class ProjectImageTest extends TestCase
             ->get(["projects.images.show",$project,$image])
             ->response()
             ->assertStatus(200)
-            ->assertJsonFragment( $image->toArray() );
+            ->assertJsonModel( $image );
     }
 
     /** @test */

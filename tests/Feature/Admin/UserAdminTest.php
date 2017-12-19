@@ -150,16 +150,16 @@ class UserAdminTest extends TestCase
     /** @test */
     function a_listing_of_users_can_be_retrieved_by_an_admin()
     {
-        create(User::class,3);
+        $users = create(User::class,3);
 
         $this
             ->api()
             ->actingAsAdmin()
             ->get("users.index")
             ->response()
-            ->assertStatus(200);
-
-        $this->assertJsonCount(4);
+                ->assertStatus(200)
+                ->assertJsonCount(4)
+                ->assertJsonModelCollection($users);
     }
 
     /** @test */
