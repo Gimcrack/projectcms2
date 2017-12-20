@@ -19,3 +19,6 @@ Route::apiResource("images","ImageController");
 Route::apiResource("projects","ProjectController");
 Route::apiResource("categories","CategoryController");
 Route::apiResource("tags","TagController");
+Route::apiResource("groups","GroupController");
+
+Route::apiResource("orgs","OrgController");

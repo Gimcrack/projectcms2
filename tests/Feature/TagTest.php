@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Tag;
-use function make_array;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -14,7 +13,7 @@ class TagTest extends TestCase
     /**
      * @test
      */
-    public function it_can_get_a_listing_of_the_resource()
+    public function it_can_get_a_listing_of_tags()
     {
         $tags = create(Tag::class,3);
 
@@ -27,7 +26,7 @@ class TagTest extends TestCase
     }
 
     /** @test */
-    public function it_can_get_a_single_resource()
+    public function it_can_get_a_single_tag()
     {
         $tag = create(Tag::class);
 

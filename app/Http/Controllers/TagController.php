@@ -3,40 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Tag;
-use Illuminate\Http\Request;
-use function rescue;
+use Illuminate\Http\JsonResponse;
+use App\Http\Requests\NewTagRequest;
+use App\Http\Requests\UpdateTagRequest;
 
 class TagController extends Controller
 {
+
     /**
-     * Display a listing of the resource.
+     * Get a listing Tags
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function index()
     {
-        return response()->json(Tag::all(),200);
+        return response()->json(Tag::all(), 200);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display the specified Tag.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        Tag::create( $request->validate([
-            'name' => 'required|unique:tags,name'
-        ]) );
-
-        return response([],201);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Tag  $tag
+     * @param  Tag  $tag
      * @return \Illuminate\Http\Response
      */
     public function show(Tag $tag)
@@ -45,31 +32,43 @@ class TagController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Store the new Tag
+     * @method store
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Tag  $tag
-     * @return \Illuminate\Http\Response
+     * @param NewTagRequest $request
+     * @return JsonResponse
      */
-    public function update(Request $request, Tag $tag)
+    public function store(NewTagRequest $request)
     {
-        $tag->update( $request->validate([
-            'name' => 'required|unique:tags,name'
-        ]) );
+        Tag::create( $request->validated() );
+
+        return response([], 201);
+    }
+
+    /**
+     * Update the specified Tag
+     *
+     * @param UpdateTagRequest $request
+     * @param Tag $tag
+     * @return JsonResponse
+     */
+    public function update(UpdateTagRequest $request, Tag $tag)
+    {
+        $tag->update( $request->validated() );
 
         return response([],202);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Destroy the specified Tag
      *
-     * @param  \App\Tag  $tag
-     * @return \Illuminate\Http\Response
+     * @param Tag $tag
+     * @return JsonResponse
      */
     public function destroy(Tag $tag)
     {
         $tag->delete();
 
-        return response([],202);
+        return response([], 202);
     }
 }

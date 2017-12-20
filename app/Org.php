@@ -2,9 +2,9 @@
 
 namespace App;
 
-use App\Events\TagWasCreated;
-use App\Events\TagWasUpdated;
-use App\Events\TagWasDestroyed;
+use App\Events\OrgWasCreated;
+use App\Events\OrgWasUpdated;
+use App\Events\OrgWasDestroyed;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -12,14 +12,14 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
-class Tag extends Model
+class Org extends Model
 {
     protected $guarded = [];
 
 
     protected $dispatchesEvents = [
-        'created' => TagWasCreated::class,
-        'updated' => TagWasUpdated::class,
-        'deleting' => TagWasDestroyed::class,
+        'created' => OrgWasCreated::class,
+        'updated' => OrgWasUpdated::class,
+        'deleting' => OrgWasDestroyed::class,
     ];
 }
